@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"os"
+	"strings"
+	"time"
 )
 
 type Config struct {
@@ -35,6 +37,8 @@ type database struct {
 type Client struct {
 	databases []database
 }
+
+const ViewShardHeader = "database"
 
 func loadConfig(configPath string) (*Config, error) {
 	_, err := os.Stat(configPath)
@@ -92,7 +96,116 @@ func NewClient(configPath string) (*Client, error) {
 }
 
 func (c *Client) Executor(query	string) {
-	return
+	var maxValueLength map[string]int
+	var result []map[string]string
+	var columns []string
+	var scanArgs []interface{}
+	var values []sql.RawBytes
+	execTimes := make([]float64, len(c.databases))
+
+	for i, database := range c.databases {
+		begin := time.Now()
+		rows, err := database.db.Query(query)
+		end := time.Now()
+		if err != nil {
+			fmt.Printf("%s\n", err.Error())
+			return
+		}
+		execTimes[i] = end.Sub(begin).Seconds()
+
+		if columns == nil {
+			columns, err = rows.Columns()
+			if err != nil {
+				panic(err.Error())
+			}
+			values = make([]sql.RawBytes, len(columns))
+			if maxValueLength == nil {
+				maxValueLength = make(map[string]int, len(columns)+1)
+				maxValueLength[ ViewShardHeader ] = len(ViewShardHeader)
+			}
+
+			scanArgs = make([]interface{}, len(values))
+			for i := range values {
+				scanArgs[i] = &values[i]
+				maxValueLength[ columns[i] ] = len(columns[i])
+			}
+		}
+
+		for rows.Next() {
+			err = rows.Scan(scanArgs...)
+			if err != nil {
+				panic(err.Error())
+			}
+
+			var value string
+			data := make(map[string]string)
+			for i, col := range values {
+				if col == nil {
+					value = "NULL"
+				} else {
+					value = string(col)
+				}
+				if maxValueLength[ columns[i] ] < len(value) {
+					maxValueLength[ columns[i] ] = len(value)
+				}
+				data[columns[i]] = value
+			}
+			data[ViewShardHeader] = database.config.Database
+			if maxValueLength[ ViewShardHeader ] < len(database.config.Database) {
+				maxValueLength[ ViewShardHeader ] = len(database.config.Database)
+			}
+			result = append(result, data)
+		}
+		rows.Close()
+	}
+	columns = append(columns, ViewShardHeader)
+	viewHeader(maxValueLength, columns)
+	viewBody(maxValueLength, columns, result)
+	for _, execTime := range execTimes {
+		fmt.Printf("%f\n", execTime)
+	}
+}
+
+func viewHeader(maxValueLength map[string]int, columns []string) {
+	headStr := "|"
+	for _, columnName := range columns {
+		columnNameLen := len(columnName)
+		margin := maxValueLength[columnName] - columnNameLen
+		headStr += " "
+		headStr += strings.Repeat(" ", margin)
+		headStr += columnName
+		headStr += " |"
+	}
+	viewBorder(maxValueLength, columns)
+	fmt.Printf("%s\n", headStr)
+	viewBorder(maxValueLength, columns)
+}
+
+func viewBorder(maxValueLength map[string]int, columns []string) {
+	border := "+"
+	for _, columnName := range columns {
+		columnNameLen := len(columnName)
+		border += strings.Repeat("-", (columnNameLen + 2)) + "+"
+	}
+	fmt.Printf("%s\n", border)
+}
+
+func viewBody(maxValueLength map[string]int, columns []string, result []map[string]string) {
+	for _, row := range result {
+		rowStr := "|"
+		for _, column := range columns {
+			value := row[column]
+			valueLen := len(value)
+			margin := maxValueLength[column] - valueLen
+
+			rowStr += " "
+			rowStr += strings.Repeat(" ", margin)
+			rowStr += value
+			rowStr += " |"
+		}
+		fmt.Printf("%s\n", rowStr)
+	}
+	viewBorder(maxValueLength, columns)
 }
 
 func (c *Client) Disconnect() {
