@@ -3,13 +3,13 @@ database management prompt for sharded databases
 
 ### Install
 ```
-git clone git@github.com:ayumu83s/go-mysql-sharding-client.git
-dep ensure
+wget https://github.com/ayumu83s/go-mysql-sharding-client/releases/download/v1.0.0/go-mysql-sharding-client_{version}_{architecture}.tar.gz
+e.g. wget https://github.com/ayumu83s/go-mysql-sharding-client/releases/download/v1.0.0/go-mysql-sharding-client_1.0.1_linux_amd64.tar.gz
 ```
 
 ### Usage
 ```$xslt
-go run main --config /path/to/config.toml
+mysql-shard --config /path/to/config.toml
 ```
 ### Config Sample
 ```$xslt
