@@ -168,9 +168,11 @@ func (c *Client) Executor(query	string) {
 		}
 		rows.Close()
 	}
-	columns = append(columns, ViewShardHeader)
-	viewHeader(maxValueLength, columns)
-	viewBody(maxValueLength, columns, result)
+	if len(result) > 0 {
+		columns = append(columns, ViewShardHeader)
+		viewHeader(maxValueLength, columns)
+		viewBody(maxValueLength, columns, result)
+	}
 	for i, execTime := range execTimes {
 		fmt.Printf("%s > %d rows in set (%.2f sec)\n", c.databases[i].config.Database, execRows[i], execTime)
 	}
