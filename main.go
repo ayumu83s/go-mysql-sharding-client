@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/ayumu83s/go-mysql-sharding-client/mysql"
+	"github.com/c-bata/go-prompt"
 	"gopkg.in/urfave/cli.v1"
 	"os"
 )
@@ -27,9 +28,17 @@ func main() {
 		fmt.Println("Please use `Ctrl-D` to exit this program.")
 		defer func() {
 			client.Disconnect()
-			fmt.Printf("Bye!")
+			fmt.Println("Bye!")
 		}()
 
+		p := prompt.New(
+			client.Executor,
+			mysql.Completer,
+			prompt.OptionTitle("sql-prompt"),
+			prompt.OptionPrefix("sharding > "),
+			prompt.OptionInputTextColor(prompt.Yellow),
+		)
+		p.Run()
 		return nil
 	}
 

@@ -91,6 +91,10 @@ func NewClient(configPath string) (*Client, error) {
 	return client, nil
 }
 
+func (c *Client) Executor(query	string) {
+	return
+}
+
 func (c *Client) Disconnect() {
 	for i := range c.databases {
 		c.databases[i].db.Close()
