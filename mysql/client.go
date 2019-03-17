@@ -197,7 +197,11 @@ func viewBorder(maxValueLength map[string]int, columns []string) {
 	border := "+"
 	for _, columnName := range columns {
 		columnNameLen := len(columnName)
-		border += strings.Repeat("-", (columnNameLen + 2)) + "+"
+		if columnName == ViewShardHeader {
+			border += strings.Repeat("-", (maxValueLength[columnName] + 2)) + "+"
+		} else {
+			border += strings.Repeat("-", (columnNameLen + 2)) + "+"
+		}
 	}
 	fmt.Printf("%s\n", border)
 }
