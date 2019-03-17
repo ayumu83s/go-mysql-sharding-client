@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -183,10 +184,7 @@ func viewHeader(maxValueLength map[string]int, columns []string) {
 	for _, columnName := range columns {
 		columnNameLen := len(columnName)
 		margin := maxValueLength[columnName] - columnNameLen
-		headStr += " "
-		headStr += strings.Repeat(" ", margin)
-		headStr += columnName
-		headStr += " |"
+		headStr += " " + columnName + strings.Repeat(" ", margin) + " |"
 	}
 	viewBorder(maxValueLength, columns)
 	fmt.Printf("%s\n", headStr)
@@ -214,10 +212,14 @@ func viewBody(maxValueLength map[string]int, columns []string, result []map[stri
 			valueLen := len(value)
 			margin := maxValueLength[column] - valueLen
 
-			rowStr += " "
-			rowStr += strings.Repeat(" ", margin)
-			rowStr += value
-			rowStr += " |"
+			// Numbers and NULL are aligned right
+			_, err := strconv.Atoi(value)
+			if value == "NULL" || err == nil {
+				rowStr += " " + strings.Repeat(" ", margin) + value + " |"
+			} else {
+				rowStr += " " + value + strings.Repeat(" ", margin) + " |"
+			}
+
 		}
 		fmt.Printf("%s\n", rowStr)
 	}

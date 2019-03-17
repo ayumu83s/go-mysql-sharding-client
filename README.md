@@ -3,8 +3,7 @@ database management prompt for sharded databases
 
 ### Install
 ```
-wget https://github.com/ayumu83s/go-mysql-sharding-client/releases/download/v1.0.0/go-mysql-sharding-client_{version}_{architecture}.tar.gz
-e.g. wget https://github.com/ayumu83s/go-mysql-sharding-client/releases/download/v1.0.0/go-mysql-sharding-client_1.0.1_linux_amd64.tar.gz
+wget https://github.com/ayumu83s/go-mysql-sharding-client/releases/download/v1.0.0/go-mysql-sharding-client_1.0.1_linux_amd64.tar.gz
 ```
 
 ### Usage
