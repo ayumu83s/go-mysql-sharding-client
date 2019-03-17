@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/ayumu83s/go-mysql-sharding-client/mysql"
 	"gopkg.in/urfave/cli.v1"
 	"os"
 )
@@ -19,8 +20,16 @@ func main() {
 	}
 	app.Action = func(c *cli.Context) error {
 		configPath := c.String("config")
-		fmt.Printf("%s\n", configPath)
+		client, err := mysql.NewClient(configPath)
+		if err != nil {
+			return err
+		}
 		fmt.Println("Please use `Ctrl-D` to exit this program.")
+		defer func() {
+			client.Disconnect()
+			fmt.Printf("Bye!")
+		}()
+
 		return nil
 	}
 
