@@ -96,12 +96,21 @@ func NewClient(configPath string) (*Client, error) {
 }
 
 func (c *Client) Executor(query	string) {
+
+	if query == "exit" {
+		fmt.Println("Bye!")
+		c.Disconnect()
+		os.Exit(0)
+		return
+	}
+
 	var maxValueLength map[string]int
 	var result []map[string]string
 	var columns []string
 	var scanArgs []interface{}
 	var values []sql.RawBytes
 	execTimes := make([]float64, len(c.databases))
+	execRows := make([]int, len(c.databases))
 
 	for i, database := range c.databases {
 		begin := time.Now()
@@ -155,14 +164,15 @@ func (c *Client) Executor(query	string) {
 				maxValueLength[ ViewShardHeader ] = len(database.config.Database)
 			}
 			result = append(result, data)
+			execRows[i]++
 		}
 		rows.Close()
 	}
 	columns = append(columns, ViewShardHeader)
 	viewHeader(maxValueLength, columns)
 	viewBody(maxValueLength, columns, result)
-	for _, execTime := range execTimes {
-		fmt.Printf("%f\n", execTime)
+	for i, execTime := range execTimes {
+		fmt.Printf("%s > %d rows in set (%.2f sec)\n", c.databases[i].config.Database, execRows[i], execTime)
 	}
 }
 

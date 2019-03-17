@@ -25,7 +25,7 @@ func main() {
 		if err != nil {
 			return err
 		}
-		fmt.Println("Please use `Ctrl-D` to exit this program.")
+		fmt.Println("Please use `exit` or `Ctrl-D` to exit this program.")
 		defer func() {
 			client.Disconnect()
 			fmt.Println("Bye!")
