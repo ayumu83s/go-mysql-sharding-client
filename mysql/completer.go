@@ -14,6 +14,7 @@ func Completer(in prompt.Document) []prompt.Suggest {
 		{Text: "COUNT(*)"},
 		{Text: "MAX"},
 		{Text: "SUM"},
+		{Text: "EXPLAIN"},
 	}
 	return prompt.FilterHasPrefix(s, in.GetWordBeforeCursor(), true)
 }
