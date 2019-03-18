@@ -2,9 +2,9 @@ package mysql
 
 import (
 	"database/sql"
-	_ "github.com/go-sql-driver/mysql"
 	"fmt"
 	"github.com/BurntSushi/toml"
+	_ "github.com/go-sql-driver/mysql"
 	"os"
 	"strconv"
 	"strings"
@@ -104,7 +104,10 @@ func (c *Client) Executor(query	string) {
 		os.Exit(0)
 		return
 	}
+	c.doQuery(query)
+}
 
+func (c *Client) doQuery(query string) {
 	var maxValueLength map[string]int
 	var result []map[string]string
 	var columns []string
