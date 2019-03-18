@@ -6,6 +6,7 @@ import (
 	"github.com/BurntSushi/toml"
 	_ "github.com/go-sql-driver/mysql"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -104,7 +105,38 @@ func (c *Client) Executor(query	string) {
 		os.Exit(0)
 		return
 	}
-	c.doQuery(query)
+
+	re := regexp.MustCompile(`(?i)select`)
+	if re.MatchString(query) == true {
+		c.doQuery(query)
+	} else {
+		c.doExec(query)
+	}
+}
+
+func (c *Client) doExec(query string)  {
+	execTimes := make([]float64, len(c.databases))
+	affectedRows := make([]int64, len(c.databases))
+	for i, database := range c.databases {
+		begin := time.Now()
+		result, err := database.db.Exec(query)
+		end := time.Now()
+		if err != nil {
+			fmt.Printf("%s\n", err.Error())
+			return
+		}
+		execTimes[i] = end.Sub(begin).Seconds()
+		affected, err := result.RowsAffected()
+		if err != nil {
+			fmt.Printf("%s\n", err.Error())
+			return
+		}
+		affectedRows[i] = affected
+	}
+
+	for i := range c.databases {
+		fmt.Printf("%s > Query OK, %d rows affected (%.2f sec)\n", c.databases[i].config.Database, affectedRows[i], execTimes[i])
+	}
 }
 
 func (c *Client) doQuery(query string) {
