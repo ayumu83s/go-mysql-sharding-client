@@ -42,6 +42,8 @@ type Client struct {
 
 const ViewShardHeader = "database"
 
+var re = regexp.MustCompile(`(?i)(select|show)`)
+
 func loadConfig(configPath string) (*Config, error) {
 	_, err := os.Stat(configPath)
 	if os.IsNotExist(err) {
@@ -106,7 +108,6 @@ func (c *Client) Executor(query	string) {
 		return
 	}
 
-	re := regexp.MustCompile(`(?i)select`)
 	if re.MatchString(query) == true {
 		c.doQuery(query)
 	} else {
